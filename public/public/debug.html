@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zort API Debug Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .control-panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn.danger {
+            background: #ef4444;
+        }
+        
+        .btn.danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn.success {
+            background: #10b981;
+        }
+        
+        .btn.success:hover {
+            background: #059669;
+        }
+        
+        .status-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+        
+        .status-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .output-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .output-panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .output-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .message.success {
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #86efac;
+        }
+        
+        .message.error {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+        
+        .message.warning {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fde047;
+        }
+        
+        .message.info {
+            background: #dbeafe;
+            color: #2563eb;
+            border: 1px solid #93c5fd;
+        }
+        
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .api-config {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .config-row:last-child {
+            border-bottom: none;
+        }
+        
+        .config-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .config-value {
+            color: #6b7280;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔍 Zort API Debug Tool</h1>
+            <p>ทดสอบการเชื่อมต่อและตรวจสอบข้อมูลจาก Zort API | <span id="timestamp"></span></p>
+        </div>
+        
+        <!-- API Configuration -->
+        <div class="control-panel">
+            <h2>⚙️ API Configuration</h2>
+            <div class="api-config" id="configInfo">
+                <div class="config-row">
+                    <span class="config-label">API Endpoint:</span>
+                    <span class="config-value">https://open-api.zortout.com/v4</span>
+                </div>
+                <div class="config-row">
+                    <span class="config-label">Store:</span>
+                    <span class="config-value">iamfuture.stock@gmail.com</span>
+                </div>
+                <div class="config-row">
+                    <span class="config-label">Server URL:</span>
+                    <span class="config-value" id="serverUrl">-</span>
+                </div>
+                <div class="config-row">
+                    <span class="config-label">Status:</span>
+                    <span class="config-value" id="connectionStatus">Checking...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h2>🎮 Test Controls</h2>
+            <div class="button-grid">
+                <button class="btn" onclick="testConnection()">🔌 Test Connection</button>
+                <button class="btn" onclick="testAPI()">🧪 Test API</button>
+                <button class="btn" onclick="getSummary()">📊 Get Summary</button>
+                <button class="btn" onclick="getProducts()">📦 Get Products</button>
+                <button class="btn" onclick="getOrders()">📋 Get Orders</button>
+                <button class="btn success" onclick="runAllTests()">🚀 Run All Tests</button>
+                <button class="btn danger" onclick="clearOutput()">🗑️ Clear Output</button>
+            </div>
+        </div>
+        
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <h2>📈 Current Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-value" id="totalOrders">-</div>
+                    <div class="status-label">Total Orders</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="todayOrders">-</div>
+                    <div class="status-label">Today Orders</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="todaySales">-</div>
+                    <div class="status-label">Today Sales</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="totalProducts">-</div>
+                    <div class="status-label">Products</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="totalWarehouses">-</div>
+                    <div class="status-label">Warehouses</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="lowStock">-</div>
+                    <div class="status-label">Low Stock</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="outOfStock">-</div>
+                    <div class="status-label">Out of Stock</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="negativeStock">-</div>
+                    <div class="status-label">Negative</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Output Panel -->
+        <div class="output-panel">
+            <h2>📝 Debug Output</h2>
+            <div class="output-content" id="output">
+                <div class="message info">
+                    👆 Click any button above to start testing
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update timestamp
+        function updateTimestamp() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString('th-TH');
+        }
+        updateTimestamp();
+        setInterval(updateTimestamp, 1000);
+        
+        // Set server URL
+        document.getElementById('serverUrl').textContent = window.location.origin;
+        
+        // Output helper
+        function addOutput(message, type = 'info') {
+            const output = document.getElementById('output');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = message;
+            output.insertBefore(messageDiv, output.firstChild);
+        }
+        
+        function addJsonOutput(data) {
+            const output = document.getElementById('output');
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(data, null, 2);
+            output.insertBefore(pre, output.firstChild);
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '<div class="message info">Output cleared. Ready for new tests.</div>';
+        }
+        
+        function showLoading() {
+            const output = document.getElementById('output');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = '<div class="spinner"></div><p>Loading...</p>';
+            output.insertBefore(loadingDiv, output.firstChild);
+        }
+        
+        function removeLoading() {
+            const loading = document.querySelector('.loading');
+            if (loading) loading.remove();
+        }
+        
+        // Test functions
+        async function testConnection() {
+            showLoading();
+            addOutput('🔌 Testing server connection...', 'info');
+            
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                removeLoading();
+                
+                if (data.status === 'OK') {
+                    addOutput('✅ Server connection successful!', 'success');
+                    document.getElementById('connectionStatus').textContent = '✅ Connected';
+                    document.getElementById('connectionStatus').style.color = '#059669';
+                    addJsonOutput(data);
+                } else {
+                    addOutput('⚠️ Server responded but status is not OK', 'warning');
+                    addJsonOutput(data);
+                }
+            } catch (error) {
+                removeLoading();
+                addOutput(`❌ Connection failed: ${error.message}`, 'error');
+                document.getElementById('connectionStatus').textContent = '❌ Error';
+                document.getElementById('connectionStatus').style.color = '#dc2626';
+            }
+        }
+        
+        async function testAPI() {
+            showLoading();
+            addOutput('🧪 Testing Zort API connection...', 'info');
+            
+            try {
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                removeLoading();
+                
+                if (data.success) {
+                    addOutput('✅ API connection successful!', 'success');
+                    addJsonOutput(data);
+                } else {
+                    addOutput('⚠️ API test returned with issues', 'warning');
+                    addJsonOutput(data);
+                }
+            } catch (error) {
+                removeLoading();
+                addOutput(`❌ API test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getSummary() {
+            showLoading();
+            addOutput('📊 Getting dashboard summary...', 'info');
+            
+            try {
+                const response = await fetch('/api/summary');
+                const result = await response.json();
+                removeLoading();
+                
+                if (result.success && result.data) {
+                    addOutput('✅ Summary data loaded successfully!', 'success');
+                    
+                    // Update status values
+                    document.getElementById('totalOrders').textContent = result.data.totalOrders || 0;
+                    document.getElementById('todayOrders').textContent = result.data.todayOrders || 0;
+                    document.getElementById('todaySales').textContent = '฿' + (result.data.todaySales || 0).toLocaleString();
+                    document.getElementById('totalProducts').textContent = result.data.totalProducts || 0;
+                    document.getElementById('totalWarehouses').textContent = result.data.totalWarehouses || 0;
+                    document.getElementById('lowStock').textContent = result.data.lowStockCount || 0;
+                    document.getElementById('outOfStock').textContent = result.data.outOfStockCount || 0;
+                    document.getElementById('negativeStock').textContent = result.data.negativeStockCount || 0;
+                    
+                    addOutput(`📈 Data Summary:
+                        <br>• Total Orders: ${result.data.totalOrders || 0}
+                        <br>• Today Orders: ${result.data.todayOrders || 0}
+                        <br>• Today Sales: ฿${(result.data.todaySales || 0).toLocaleString()}
+                        <br>• Products: ${result.data.totalProducts || 0}
+                        <br>• Debug Info: Orders Found: ${result.data.debug?.ordersFound || 0}, Products Found: ${result.data.debug?.productsFound || 0}
+                    `, 'success');
+                    
+                    addJsonOutput(result.data);
+                } else {
+                    addOutput('⚠️ Summary returned but may have issues', 'warning');
+                    addJsonOutput(result);
+                }
+            } catch (error) {
+                removeLoading();
+                addOutput(`❌ Failed to get summary: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getProducts() {
+            showLoading();
+            addOutput('📦 Getting products...', 'info');
+            
+            try {
+                const response = await fetch('/api/products');
+                const result = await response.json();
+                removeLoading();
+                
+                if (result.success) {
+                    const count = result.total || result.data?.length || 0;
+                    addOutput(`✅ Products loaded: ${count} items`, 'success');
+                    
+                    if (result.data && result.data.length > 0) {
+                        addOutput('First 3 products:', 'info');
+                        addJsonOutput(result.data.slice(0, 3));
+                    } else {
+                        addOutput('No product data returned', 'warning');
+                    }
+                } else {
+                    addOutput('⚠️ Products request completed with issues', 'warning');
+                    addJsonOutput(result);
+                }
+            } catch (error) {
+                removeLoading();
+                addOutput(`❌ Failed to get products: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getOrders() {
+            showLoading();
+            addOutput('📋 Getting orders...', 'info');
+            
+            try {
+                const response = await fetch('/api/orders');
+                const result = await response.json();
+                removeLoading();
+                
+                if (result.success) {
+                    const count = result.total || result.data?.length || 0;
+                    addOutput(`✅ Orders loaded: ${count} items`, 'success');
+                    
+                    if (result.data && result.data.length > 0) {
+                        addOutput('First 3 orders:', 'info');
+                        addJsonOutput(result.data.slice(0, 3));
+                    } else {
+                        addOutput('No order data returned', 'warning');
+                    }
+                } else {
+                    addOutput('⚠️ Orders request completed with issues', 'warning');
+                    addJsonOutput(result);
+                }
+            } catch (error) {
+                removeLoading();
+                addOutput(`❌ Failed to get orders: ${error.message}`, 'error');
+            }
+        }
+        
+        async function runAllTests() {
+            clearOutput();
+            addOutput('🚀 Running all tests...', 'info');
+            
+            await testConnection();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await testAPI();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await getSummary();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await getProducts();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await getOrders();
+            
+            addOutput('✅ All tests completed!', 'success');
+        }
+        
+        // Auto-run connection test on load
+        window.onload = () => {
+            setTimeout(testConnection, 500);
+        };
+    </script>
+</body>
+</html>
