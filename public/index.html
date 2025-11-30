@@ -3,16 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zort Dashboard Online</title>
+    <title>Zort Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
         .header {
             background: white;
             border-radius: 20px;
@@ -20,14 +30,25 @@
             margin-bottom: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
-        .header h1 { color: #333; font-size: 32px; margin-bottom: 10px; }
-        .header p { color: #666; font-size: 14px; }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
+        
         .stat-card {
             background: white;
             border-radius: 15px;
@@ -36,83 +57,276 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             transition: transform 0.3s;
         }
-        .stat-card:hover { transform: translateY(-5px); }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
         .stat-card .value {
             font-size: 36px;
             font-weight: bold;
             color: #667eea;
             margin-bottom: 10px;
         }
+        
         .stat-card .label {
             font-size: 14px;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .alert { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .success { background: #d1fae5; color: #059669; padding: 10px 20px; border-radius: 10px; margin: 20px 0; }
-        .loading { text-align: center; padding: 40px; color: white; }
+        
+        .alert {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .alert h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .status-message.success {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        .status-message.warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-message.info {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .stat-card .value {
+                font-size: 28px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <h1>📊 Zort Dashboard</h1>
             <p>Real-time monitoring | Last update: <span id="lastUpdate">-</span></p>
         </div>
         
-        <div class="stats-grid" id="stats">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
             <div class="stat-card">
-                <div class="value" id="orders">0</div>
-                <div class="label">Orders Today</div>
+                <div class="value" id="todayOrders">-</div>
+                <div class="label">ORDERS TODAY</div>
             </div>
             <div class="stat-card">
-                <div class="value" id="sales">฿0</div>
-                <div class="label">Today Sales</div>
+                <div class="value" id="todaySales">-</div>
+                <div class="label">TODAY SALES</div>
             </div>
             <div class="stat-card">
-                <div class="value" id="products">0</div>
-                <div class="label">Products</div>
+                <div class="value" id="totalProducts">-</div>
+                <div class="label">PRODUCTS</div>
             </div>
             <div class="stat-card">
-                <div class="value" id="stock">0</div>
-                <div class="label">Low Stock</div>
+                <div class="value" id="lowStock">-</div>
+                <div class="label">LOW STOCK</div>
             </div>
         </div>
         
+        <!-- Status Alert -->
         <div class="alert">
-            <h2>📈 Dashboard Status</h2>
-            <div class="success" id="status">✅ Connected to Zort API</div>
+            <h2>📊 Dashboard Status</h2>
+            <div id="statusMessage" class="status-message info">
+                Loading dashboard data...
+            </div>
         </div>
+        
+        <!-- Additional Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="value" id="totalOrders">-</div>
+                <div class="label">TOTAL ORDERS</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="outOfStock">-</div>
+                <div class="label">OUT OF STOCK</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="negativeStock">-</div>
+                <div class="label">NEGATIVE STOCK</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="totalWarehouses">-</div>
+                <div class="label">WAREHOUSES</div>
+            </div>
+        </div>
+        
+        <!-- Refresh Button -->
+        <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh">
+            🔄
+        </button>
     </div>
     
     <script>
         // Load dashboard data
         async function loadDashboard() {
+            console.log('Loading dashboard...');
+            
             try {
+                // Update status to loading
+                updateStatus('Loading dashboard data...', 'info');
+                
+                // Fetch summary data
                 const response = await fetch('/api/summary');
                 const result = await response.json();
                 
-                if (result.success) {
-                    document.getElementById('orders').textContent = result.data.totalOrders || 0;
-                    document.getElementById('sales').textContent = '฿' + (result.data.todaySales || 0).toLocaleString();
-                    document.getElementById('products').textContent = result.data.totalProducts || 0;
-                    document.getElementById('stock').textContent = result.data.lowStockCount || 0;
-                    document.getElementById('status').textContent = '✅ Connected - Data loaded successfully';
+                console.log('API Response:', result);
+                
+                if (result.success && result.data) {
+                    // Update all stat cards
+                    document.getElementById('todayOrders').textContent = 
+                        result.data.todayOrders || '0';
+                    
+                    document.getElementById('todaySales').textContent = 
+                        '฿' + (result.data.todaySales || 0).toLocaleString();
+                    
+                    document.getElementById('totalProducts').textContent = 
+                        result.data.totalProducts || '0';
+                    
+                    document.getElementById('lowStock').textContent = 
+                        result.data.lowStockCount || '0';
+                    
+                    document.getElementById('totalOrders').textContent = 
+                        result.data.totalOrders || '0';
+                    
+                    document.getElementById('outOfStock').textContent = 
+                        result.data.outOfStockCount || '0';
+                    
+                    document.getElementById('negativeStock').textContent = 
+                        result.data.negativeStockCount || '0';
+                    
+                    document.getElementById('totalWarehouses').textContent = 
+                        result.data.totalWarehouses || '0';
+                    
+                    // Update status message
+                    if (result.data.usingMockData) {
+                        updateStatus('✅ Connected - ' + (result.data.message || 'แสดงข้อมูลตัวอย่างเพื่อสาธิตการทำงาน'), 'warning');
+                    } else {
+                        updateStatus('✅ Connected to Zort API - ข้อมูลจริง', 'success');
+                    }
+                    
+                    // Update last update time
+                    document.getElementById('lastUpdate').textContent = 
+                        new Date().toLocaleString('th-TH');
+                    
                 } else {
-                    document.getElementById('status').textContent = '⚠️ Using demo data';
+                    console.error('Invalid response:', result);
+                    updateStatus('⚠️ ไม่สามารถโหลดข้อมูลได้', 'warning');
+                    showDefaultData();
                 }
                 
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('th-TH');
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('status').textContent = '❌ Connection error - Please refresh';
+                console.error('Error loading dashboard:', error);
+                updateStatus('❌ Connection Error: ' + error.message, 'error');
+                showDefaultData();
             }
         }
         
-        // Load on start and refresh every 5 minutes
-        loadDashboard();
-        setInterval(loadDashboard, 5 * 60 * 1000);
+        // Update status message
+        function updateStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = 'status-message ' + type;
+        }
+        
+        // Show default/demo data
+        function showDefaultData() {
+            document.getElementById('todayOrders').textContent = '2';
+            document.getElementById('todaySales').textContent = '฿9,250';
+            document.getElementById('totalProducts').textContent = '10';
+            document.getElementById('lowStock').textContent = '3';
+            document.getElementById('totalOrders').textContent = '3';
+            document.getElementById('outOfStock').textContent = '2';
+            document.getElementById('negativeStock').textContent = '1';
+            document.getElementById('totalWarehouses').textContent = '2';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('th-TH');
+        }
+        
+        // Refresh dashboard
+        function refreshDashboard() {
+            loadDashboard();
+        }
+        
+        // Load on page load
+        window.onload = function() {
+            console.log('Page loaded, initializing dashboard...');
+            loadDashboard();
+            
+            // Auto refresh every 5 minutes
+            setInterval(loadDashboard, 5 * 60 * 1000);
+        };
     </script>
 </body>
 </html>
